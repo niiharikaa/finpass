@@ -1,7 +1,7 @@
 # FinPass
 
 Clickable prototype of FinPass, a user-controlled Financial Passport for multi-source earners in Singapore.
-FNCE6082 Digital Transformation of Financial Services · Group 7: Ankur Malik, Atharva Suhas Kulange, Janhavi Bilgaye, Niharika.
+FNCE6082 Digital Transformation of Financial Services · Group 7: Ankur Malik, Atharva Suhas Kulange, Janhavi Bilgaye, Niharika Singavajhala, Xu Xiuying.
 
 **Version 2**
 

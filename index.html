@@ -64,37 +64,37 @@ input[type=range]{width:100%;accent-color:var(--coral)}
 svg text{font-family:var(--font);fill:var(--muted)}
 .sparkle{position:absolute;color:var(--gold);pointer-events:none}
 
-/* ---------- Login ---------- */
-.login{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
-@media (max-width:900px){.login{grid-template-columns:minmax(0,1fr)}}
-.login-art{position:relative;overflow:hidden;background:linear-gradient(130deg,#FFFFFF 0%,#FCEDEF 38%,#F2B3B8 75%,#E66A6E 100%);padding:48px 56px 200px;display:flex;flex-direction:column;gap:22px}
-@media (max-width:900px){.login-art{padding:32px 20px 200px}}
-.login-art .sun{position:absolute;width:150px;height:150px;border-radius:50%;background:var(--gold);top:-70px;right:22%}
+/* ---------- Login (one centred page on a single gradient) ---------- */
+.login{position:relative;overflow:hidden;min-height:100vh;background:linear-gradient(170deg,#FFFFFF 0%,#FDF0F1 30%,#F7CDD0 62%,#EC8C90 88%,#E26A6F 100%);display:flex;flex-direction:column;align-items:center;padding:28px 20px 210px;text-align:center}
+.login .sun{position:absolute;width:170px;height:170px;border-radius:50%;background:var(--gold);top:-85px;left:calc(50% + 180px);opacity:.9}
+.login .sun.s2{width:110px;height:110px;top:auto;bottom:150px;left:-40px;background:var(--coral);opacity:.25}
+.login-center{position:relative;z-index:1;width:100%;max-width:620px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.login .logo{margin-bottom:10px}
 .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:.06em;color:var(--maroon)}
 .logo .lm{width:34px;height:34px;border-radius:10px;background:var(--maroon);color:var(--gold);display:grid;place-items:center;font-size:15px}
-.login-art h1{font-size:clamp(38px,4.6vw,60px);font-weight:800;color:var(--maroon);letter-spacing:-.03em;max-width:9em;margin-top:30px;position:relative;z-index:1}
-.login-art p{font-size:17px;color:var(--muted);max-width:26em;position:relative;z-index:1}
-.login-art .vals{color:var(--coral);font-weight:700}
-.passport{position:absolute;right:8%;bottom:110px;width:200px;height:276px;border-radius:10px 16px 16px 10px;background:linear-gradient(140deg,#7A2A42 0%,#5B1C2E 55%,#4A1524 100%);box-shadow:0 30px 50px -20px rgba(74,21,36,.65),inset 6px 0 0 rgba(0,0,0,.18);transform:rotate(-10deg);display:flex;flex-direction:column;align-items:center;padding:22px 16px;gap:10px;color:var(--gold);animation:float 7s ease-in-out infinite}
-.passport .rep{font-size:9px;letter-spacing:.2em;font-weight:600}
-.passport svg.crest{width:70px;height:70px}
-.passport .pn{font-family:Georgia,"Times New Roman",serif;font-size:24px;letter-spacing:.14em}
-.passport .rl{width:60%;height:1px;background:var(--gold);opacity:.6}
-.passport .sub{font-family:Georgia,"Times New Roman",serif;font-size:9px;letter-spacing:.2em;text-align:center;line-height:1.7}
-@media (max-width:1200px){.passport{display:none}}
-@keyframes float{0%,100%{translate:0 0}50%{translate:0 -8px}}
-.skyline{position:absolute;left:0;right:0;bottom:0;height:120px;pointer-events:none}
-.skyline svg{position:absolute;bottom:0;left:0;width:100%;height:120px}
-.login-form{display:flex;align-items:center;justify-content:center;padding:48px 24px 110px;background:#fff}
-.login-box{width:100%;max-width:400px;display:flex;flex-direction:column;gap:18px}
-.login-box h2{font-size:28px;font-weight:800}
-.sp-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;border:0;border-radius:14px;padding:15px;background:var(--maroon);color:#fff;font-weight:700;font-size:16px}
-.sp-btn:hover{background:var(--maroon-deep)}
-.divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px}
-.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
-.qr-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
-.qr{width:180px;height:180px;padding:12px;background:#fff;border:1.5px solid var(--line);border-radius:16px}
+.login h1{font-size:clamp(34px,5vw,56px);font-weight:800;color:var(--maroon);letter-spacing:-.03em;max-width:12em}
+.login .lead{font-size:17px;color:var(--muted);max-width:30em}
+.login .vals{color:var(--coral);font-weight:700;font-size:14.5px}
+.login-actions{width:100%;max-width:380px;display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.login-actions .btn{width:100%}
+.login .fine{font-size:13px;color:var(--muted);max-width:30em}
+.sp-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;border:0;border-radius:999px;padding:15px;background:var(--maroon);color:#fff;font-weight:700;font-size:16px;box-shadow:0 14px 30px -16px rgba(110,35,56,.7);transition:background .15s ease,transform .15s ease}
+.sp-btn:hover{background:var(--maroon-deep);transform:translateY(-1px)}
+.qr-card{background:rgba(255,255,255,.9);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:26px;padding:26px;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 30px 60px -36px rgba(110,35,56,.6)}
+.qr-card h2{font-size:26px;font-weight:800;color:var(--maroon)}
+.qr{width:184px;height:184px;padding:12px;background:#fff;border:1.5px solid var(--line);border-radius:18px}
 .sim{font-size:12px;color:var(--muted);background:var(--grey);border-radius:10px;padding:8px 12px}
+.skyline{position:absolute;left:0;right:0;bottom:0;height:150px;pointer-events:none}
+.skyline svg{position:absolute;bottom:0;left:0;width:100%;height:150px}
+
+/* Passport cover */
+.cover{--cv:#A4322C;--cream:#F7DDB0;width:200px;aspect-ratio:497/704;max-width:100%;border-radius:8px 16px 16px 8px;background:radial-gradient(120% 80% at 30% 20%,#B23A33 0%,var(--cv) 55%,#8E2A25 100%);color:var(--cream);display:flex;flex-direction:column;align-items:center;padding:1.7em 1.5em 1.3em;box-shadow:0 34px 50px -24px rgba(90,24,20,.7),inset 7px 0 0 rgba(0,0,0,.14),inset 0 0 0 1px rgba(255,255,255,.06);transform:rotate(-4deg);animation:float 7s ease-in-out infinite;font-family:var(--font)}
+.cover .l1{font-size:.56em;font-weight:700;letter-spacing:.1em;white-space:nowrap}
+.cover .l2{font-size:1.15em;font-weight:800;letter-spacing:.04em;line-height:1.1}
+.cover .emb{width:90%;margin-top:1.4em}
+.cover .l3{font-size:1.05em;font-weight:800;letter-spacing:.08em;margin-top:auto}
+.cover .chip{width:16%;margin-top:1.3em}
+@keyframes float{0%,100%{translate:0 0}50%{translate:0 -8px}}
 
 /* ---------- Applicant shell ---------- */
 .topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--maroon);color:#fff}
@@ -142,7 +142,7 @@ svg text{font-family:var(--font);fill:var(--muted)}
 .pcard .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:auto;position:relative}
 .pcard .stats small{display:block;font-size:12px;opacity:.7}
 .pcard .stats b{font-size:20px}
-.pcard .bgcrest{position:absolute;right:-30px;bottom:-30px;width:210px;height:210px;color:var(--gold);opacity:.12}
+.pcard .bgcrest{position:absolute;right:-24px;bottom:-34px;width:220px;height:220px;color:var(--gold);opacity:.13}
 .pcard .btn{position:relative}
 .quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 @media (max-width:480px){.quick{grid-template-columns:minmax(0,1fr)}}
@@ -331,6 +331,11 @@ table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
 .demo-switch .rs{color:rgba(255,255,255,.6);padding:8px 10px}
 @media (max-width:600px){.demo-switch .lab{display:none}.demo-switch{right:10px;left:10px;justify-content:center}}
 
+/* Icon circles sit inside rows whose span text is muted; keep the icons white. */
+.qbtn .circ,.inst .circ,.sigc .hd .circ{color:#fff;font-size:17px}
+.share-row .circ{color:#fff}
+.qbtn .c-soft,.inst .c-soft{color:var(--maroon)}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -434,8 +439,23 @@ function toast(msg,icon){
 }
 function notify(msg,icon,cls){S.notifs.unshift({t:hm(),icon,cls,msg,unread:true})}
 function act(msg,sub,icon,cls){S.activity.unshift({t:now(),msg,sub,icon,cls})}
-const CREST_INNER=`<circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="2" fill="none"/><path d="M44 24a24 24 0 1 0 0 52a20 20 0 1 1 0-52z" fill="currentColor"/><g fill="currentColor"><polygon points="62,30 63.5,34.5 68,34.5 64.4,37.2 65.8,41.6 62,39 58.2,41.6 59.6,37.2 56,34.5 60.5,34.5"/><polygon points="74,42 75.5,46.5 80,46.5 76.4,49.2 77.8,53.6 74,51 70.2,53.6 71.6,49.2 68,46.5 72.5,46.5"/><polygon points="69,58 70.5,62.5 75,62.5 71.4,65.2 72.8,69.6 69,67 65.2,69.6 66.6,65.2 63,62.5 67.5,62.5"/><polygon points="55,58 56.5,62.5 61,62.5 57.4,65.2 58.8,69.6 55,67 51.2,69.6 52.6,65.2 49,62.5 53.5,62.5"/><polygon points="50,42 51.5,46.5 56,46.5 52.4,49.2 53.8,53.6 50,51 46.2,53.6 47.6,49.2 44,46.5 48.5,46.5"/></g>`;
-const crest=cls=>`<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true">${CREST_INNER}</svg>`;
+// Original FinPass emblem (not a state crest): shield + check, laurels, ribbon.
+function emblemInner(){
+  let leaves="";
+  for(let k=0;k<6;k++){const t=k/5,x=30-14*Math.sin(t*2.4),y=90-t*58,r=-20-t*55;
+    leaves+=`<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="4.2" ry="8.5" transform="rotate(${r.toFixed(0)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;
+    leaves+=`<ellipse cx="${(120-x).toFixed(1)}" cy="${y.toFixed(1)}" rx="4.2" ry="8.5" transform="rotate(${(-r).toFixed(0)} ${(120-x).toFixed(1)} ${y.toFixed(1)})"/>`}
+  const star=(cx,cy,r)=>`<path d="M${cx} ${cy-r}C${cx+r*.12} ${cy-r*.12} ${cx+r*.12} ${cy-r*.12} ${cx+r} ${cy}C${cx+r*.12} ${cy+r*.12} ${cx+r*.12} ${cy+r*.12} ${cx} ${cy+r}C${cx-r*.12} ${cy+r*.12} ${cx-r*.12} ${cy+r*.12} ${cx-r} ${cy}C${cx-r*.12} ${cy-r*.12} ${cx-r*.12} ${cy-r*.12} ${cx} ${cy-r}Z"/>`;
+  return `<g fill="currentColor">${leaves}${star(48,10,5)}${star(60,6,6.5)}${star(72,10,5)}</g>
+    <path d="M60 18L86 26V50C86 67 75 79 60 87C45 79 34 67 34 50V26Z" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M46 52L56 62L75 40" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M14 94Q60 108 106 94L101 106Q60 120 19 106Z" fill="currentColor"/>
+    <path id="rb" d="M22 101Q60 113 98 101" fill="none"/>
+    <text font-size="7.6" font-weight="800" letter-spacing="1.4" style="fill:var(--ribbon-ink,#A4322C);font-family:var(--font)"><textPath href="#rb" startOffset="50%" text-anchor="middle">FINANCIAL IDENTITY</textPath></text>`;
+}
+const crest=cls=>`<svg class="${cls}" viewBox="0 0 120 122" aria-hidden="true" style="--ribbon-ink:transparent">${emblemInner()}</svg>`;
+const CHIP=`<svg class="chip" viewBox="0 0 48 32" aria-hidden="true"><rect x="2" y="2" width="44" height="28" rx="6" fill="none" stroke="currentColor" stroke-width="3"/><path d="M2 16H14M34 16H46" stroke="currentColor" stroke-width="3"/><ellipse cx="24" cy="16" rx="10" ry="8" fill="none" stroke="currentColor" stroke-width="3"/></svg>`;
+const cover=(w)=>`<div class="cover" style="width:${w}px;font-size:${(w/9.5).toFixed(1)}px" role="img" aria-label="FinPass passport cover"><span class="l1">FINANCIAL PASSPORT</span><span class="l2">SINGAPORE</span><svg class="emb" viewBox="0 0 120 122" aria-hidden="true">${emblemInner()}</svg><span class="l3">FINPASS</span>${CHIP}</div>`;
 const SPARK=st=>`<svg class="sparkle" style="${st}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z" fill="currentColor"/></svg>`;
 function skyline(){
   const c="rgba(110,35,56,.15)",c2="rgba(110,35,56,.2)";
@@ -488,30 +508,30 @@ function reading(id,c){
 }
 
 /* ================= applicant views ================= */
-function loginArt(){
-  return `<div class="sun"></div>${SPARK("top:90px;right:12%;width:20px;height:20px")}${SPARK("top:46%;left:4%;width:16px;height:16px")}
-    <div class="logo"><span class="lm"><i class="fa-solid fa-passport"></i></span>FINPASS</div>
-    <h1>Your financial life is more than a payslip.</h1>
-    <p>One verified passport for all your income: salary, freelance, gig work and side business. You choose what each lender sees.</p>
-    <p class="vals">User-controlled · Consent-based · Built for Singapore</p>
-    <div class="passport" aria-hidden="true"><span class="rep">REPUBLIC OF SINGAPORE</span>${crest("crest")}<span class="pn">FINPASS</span><span class="rl"></span><span class="sub">SINGAPORE<br>FINANCIAL IDENTITY</span><i class="fa-solid fa-microchip" style="margin-top:auto;font-size:18px"></i></div>
-    <div class="skyline">${skyline()}</div>`;
-}
 function vLogin(){
-  const right=S.loginStep===1?`<div class="login-box">
-      <button class="btn b-ghost b-sm" data-act="login-back" style="align-self:flex-start"><i class="fa-solid fa-arrow-left"></i> Back</button>
-      <div class="qr-wrap"><h2>Scan to log in</h2><p class="muted">Open your Singpass app and scan this code to log in to FinPass.</p>
-      <div class="qr">${qrSVG()}</div>
-      <button class="sp-btn" data-act="login-approve"><i class="fa-solid fa-mobile-screen-button"></i> I've approved it on my phone</button>
-      <p class="sim">Simulated login for the prototype. No real Singpass connection is made.</p></div></div>`
-    :`<div class="login-box">
-      <h2>Welcome back</h2><p class="muted">Log in to manage your Financial Passport, review lender requests and control who can see your data.</p>
-      <button class="sp-btn" data-act="login-start"><i class="fa-solid fa-qrcode"></i> Log in with Singpass</button>
-      <div class="divider">New to FinPass?</div>
-      <button class="btn b-line" data-act="login-start">Create your passport</button>
-      <p class="small muted">FinPass never sees your banking passwords. Every connection is read-only and you can revoke it at any time.</p>
-      <p class="small muted">Lender? Switch to Lender X with the demo control at the bottom right.</p></div>`;
-  return `<div class="login"><div class="login-art">${loginArt()}</div><div class="login-form">${right}</div></div>`;
+  const deco=`<div class="sun"></div><div class="sun s2"></div>${SPARK("top:120px;left:14%;width:22px;height:22px")}${SPARK("top:46%;right:12%;width:18px;height:18px")}${SPARK("top:30%;left:8%;width:12px;height:12px")}<div class="skyline">${skyline()}</div>`;
+  const inner=S.loginStep===1?`
+      <div class="logo"><span class="lm"><i class="fa-solid fa-passport"></i></span>FINPASS</div>
+      <div class="qr-card">
+        <h2>Scan to log in</h2>
+        <p class="muted">Open your Singpass app and scan this code to log in to FinPass.</p>
+        <div class="qr">${qrSVG()}</div>
+        <button class="sp-btn" data-act="login-approve"><i class="fa-solid fa-mobile-screen-button"></i> I've approved it on my phone</button>
+        <button class="btn b-ghost b-sm" data-act="login-back"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <p class="sim">Simulated login for the prototype. No real Singpass connection is made.</p>
+      </div>`
+    :`
+      <div class="logo"><span class="lm"><i class="fa-solid fa-passport"></i></span>FINPASS</div>
+      ${cover(190)}
+      <h1>Your financial life is more than a payslip.</h1>
+      <p class="lead">One verified passport for all your income: salary, freelance, gig work and side business. You choose what each lender sees.</p>
+      <p class="vals">User-controlled · Consent-based · Built for Singapore</p>
+      <div class="login-actions">
+        <button class="sp-btn" data-act="login-start"><i class="fa-solid fa-qrcode"></i> Log in with Singpass</button>
+        <button class="btn b-line" data-act="login-start">Create your passport</button>
+      </div>
+      <p class="fine">FinPass never sees your banking passwords. Every connection is read-only and you can revoke it at any time.</p>`;
+  return `<div class="login">${deco}<div class="login-center">${inner}</div></div>`;
 }
 function topbar(){
   const unread=S.notifs.filter(n=>n.unread).length;
@@ -564,8 +584,8 @@ function vPassport(){
     <div class="meter"><i style="width:${Math.max(0,Math.min(1,r.bar))*100}%"></i></div>
     <details><summary>How is this worked out?</summary><div class="math">${r.math.map(m=>`<span>${m}</span>`).join("")}</div></details></div>`}).join("");
   return `<main class="page">
-    <div class="page-h"><div><h1>My passport</h1><p>Five signals built from 12 months of verified income. It's not a credit score: each lender applies its own rules.</p></div>
-      <span class="badge bd-ok" style="font-size:13.5px;padding:6px 14px"><i class="fa-solid fa-circle-check"></i> Verified 28 Oct 2026</span></div>
+    <div class="page-h" style="align-items:center;gap:24px;justify-content:flex-start">${cover(96)}<div style="flex:1;min-width:240px"><h1>My passport</h1><p>Five signals built from 12 months of verified income. It's not a credit score: each lender applies its own rules.</p>
+      <span class="badge bd-ok" style="font-size:13.5px;padding:6px 14px;margin-top:10px"><i class="fa-solid fa-circle-check"></i> Verified 28 Oct 2026</span></div></div>
     <div class="sig-grid">${cards}</div>
     <div class="card"><div class="card-h"><h3>Where your income comes from</h3><button class="btn b-ghost b-sm" data-act="uview" data-arg="sources">Manage sources</button></div>${incomeChart(seriesOf("arjun"),labelsOf("arjun"),c.med)}</div>
     <p class="small muted">Cash-flow cover assumes the S$10,000, 24-month loan Lender X asked about, at an illustrative 7% a year.</p>

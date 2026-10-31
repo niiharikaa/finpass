@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="FinPass: a user-controlled Financial Passport that turns fragmented income into verified, reusable proof for credit applications.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236E2338'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-family='Arial' font-weight='700' font-size='18' fill='%23CDA54F'%3EF%3C/text%3E%3C/svg%3E">
+<title>FinPass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+<style>
+/* Layout: a working web app. Applicant side = blush ground, maroon top bar, card dashboard.
+   Lender side = denser back-office with a maroon sidebar. One light look, matching the FinPass deck. */
+:root{
+  --maroon:#6E2338; --maroon-deep:#521A2A; --coral:#E04B4B; --gold:#CDA54F; --gold-soft:#F6EBCF;
+  --blush:#FDF5F6; --pink:#F6D3D6; --rose:#E98A90;
+  --ink:#1F1A1C; --muted:#6A5D61; --line:#EFDDE0; --card:#FFFFFF; --grey:#F6F3F4;
+  --ok:#2F9E6E; --ok-soft:#E3F4EC; --bad:#C9373A; --bad-soft:#FCE4E4; --warn-soft:#FFF4DA;
+  --font:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--blush);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.55;margin:0}
+h1,h2,h3,h4{margin:0;letter-spacing:-.015em;line-height:1.2;text-wrap:balance}
+p{margin:0}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+
+/* Buttons & bits */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:999px;padding:11px 22px;font-weight:700;font-size:14.5px;text-decoration:none;transition:transform .15s ease,box-shadow .15s ease,background .15s ease;white-space:nowrap}
+.btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 18px -10px rgba(110,35,56,.55)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.b-coral{background:var(--coral);color:#fff}
+.b-maroon{background:var(--maroon);color:#fff}
+.b-line{background:#fff;color:var(--maroon);box-shadow:inset 0 0 0 1.5px var(--line)}
+.b-ghost{background:transparent;color:var(--maroon);padding-inline:12px}
+.b-ok{background:var(--ok);color:#fff}
+.b-bad{background:#fff;color:var(--bad);box-shadow:inset 0 0 0 1.5px #F0B7B8}
+.b-sm{padding:7px 14px;font-size:13px}
+.circ{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:17px;flex:none}
+.c-maroon{background:var(--maroon)} .c-coral{background:var(--coral)} .c-gold{background:var(--gold)} .c-soft{background:var(--blush);color:var(--maroon)}
+.badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 11px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.bd-ok{background:var(--ok-soft);color:#1E7A52}
+.bd-bad{background:var(--bad-soft);color:var(--bad)}
+.bd-warn{background:var(--warn-soft);color:#8A6412}
+.bd-grey{background:var(--grey);color:var(--muted)}
+.bd-maroon{background:var(--maroon);color:#fff}
+.bd-gold{background:var(--gold);color:var(--maroon)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;min-width:0}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.card-h h3{font-size:17px;font-weight:800}
+.toggle{appearance:none;width:46px;height:26px;border-radius:999px;background:#E2D4D7;position:relative;flex:none;cursor:pointer;transition:background .2s ease;margin:0}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s ease;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.toggle:checked{background:var(--coral)}
+.toggle:checked::after{transform:translateX(20px)}
+input[type=range]{width:100%;accent-color:var(--coral)}
+svg text{font-family:var(--font);fill:var(--muted)}
+.sparkle{position:absolute;color:var(--gold);pointer-events:none}
+
+/* ---------- Login ---------- */
+.login{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+@media (max-width:900px){.login{grid-template-columns:minmax(0,1fr)}}
+.login-art{position:relative;overflow:hidden;background:linear-gradient(130deg,#FFFFFF 0%,#FCEDEF 38%,#F2B3B8 75%,#E66A6E 100%);padding:48px 56px 200px;display:flex;flex-direction:column;gap:22px}
+@media (max-width:900px){.login-art{padding:32px 20px 200px}}
+.login-art .sun{position:absolute;width:150px;height:150px;border-radius:50%;background:var(--gold);top:-70px;right:22%}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:.06em;color:var(--maroon)}
+.logo .lm{width:34px;height:34px;border-radius:10px;background:var(--maroon);color:var(--gold);display:grid;place-items:center;font-size:15px}
+.login-art h1{font-size:clamp(38px,4.6vw,60px);font-weight:800;color:var(--maroon);letter-spacing:-.03em;max-width:9em;margin-top:30px;position:relative;z-index:1}
+.login-art p{font-size:17px;color:var(--muted);max-width:26em;position:relative;z-index:1}
+.login-art .vals{color:var(--coral);font-weight:700}
+.passport{position:absolute;right:8%;bottom:110px;width:200px;height:276px;border-radius:10px 16px 16px 10px;background:linear-gradient(140deg,#7A2A42 0%,#5B1C2E 55%,#4A1524 100%);box-shadow:0 30px 50px -20px rgba(74,21,36,.65),inset 6px 0 0 rgba(0,0,0,.18);transform:rotate(-10deg);display:flex;flex-direction:column;align-items:center;padding:22px 16px;gap:10px;color:var(--gold);animation:float 7s ease-in-out infinite}
+.passport .rep{font-size:9px;letter-spacing:.2em;font-weight:600}
+.passport svg.crest{width:70px;height:70px}
+.passport .pn{font-family:Georgia,"Times New Roman",serif;font-size:24px;letter-spacing:.14em}
+.passport .rl{width:60%;height:1px;background:var(--gold);opacity:.6}
+.passport .sub{font-family:Georgia,"Times New Roman",serif;font-size:9px;letter-spacing:.2em;text-align:center;line-height:1.7}
+@media (max-width:1200px){.passport{display:none}}
+@keyframes float{0%,100%{translate:0 0}50%{translate:0 -8px}}
+.skyline{position:absolute;left:0;right:0;bottom:0;height:120px;pointer-events:none}
+.skyline svg{position:absolute;bottom:0;left:0;width:100%;height:120px}
+.login-form{display:flex;align-items:center;justify-content:center;padding:48px 24px 110px;background:#fff}
+.login-box{width:100%;max-width:400px;display:flex;flex-direction:column;gap:18px}
+.login-box h2{font-size:28px;font-weight:800}
+.sp-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;border:0;border-radius:14px;padding:15px;background:var(--maroon);color:#fff;font-weight:700;font-size:16px}
+.sp-btn:hover{background:var(--maroon-deep)}
+.divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:13px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+.qr-wrap{display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center}
+.qr{width:180px;height:180px;padding:12px;background:#fff;border:1.5px solid var(--line);border-radius:16px}
+.sim{font-size:12px;color:var(--muted);background:var(--grey);border-radius:10px;padding:8px 12px}
+
+/* ---------- Applicant shell ---------- */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--maroon);color:#fff}
+.topbar .in{max-width:1200px;margin:0 auto;padding-inline:20px;height:64px;display:flex;align-items:center;gap:28px}
+.topbar .logo{color:#fff}
+.topbar .logo .lm{background:var(--gold);color:var(--maroon)}
+.tabs{display:flex;gap:4px;flex:1;overflow-x:auto;scrollbar-width:none}
+.tabs button{background:transparent;border:0;color:rgba(255,255,255,.72);font-weight:600;padding:8px 14px;border-radius:999px;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.tabs button:hover{color:#fff;background:rgba(255,255,255,.08)}
+.tabs button[aria-current="page"]{background:#fff;color:var(--maroon)}
+.tabs .n{background:var(--gold);color:var(--maroon);border-radius:999px;font-size:11px;font-weight:800;padding:0 7px}
+.tb-right{display:flex;align-items:center;gap:10px;position:relative}
+.icon-btn{position:relative;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;display:grid;place-items:center}
+.icon-btn .dot{position:absolute;top:2px;right:2px;min-width:17px;height:17px;border-radius:999px;background:var(--gold);color:var(--maroon);font-size:10.5px;font-weight:800;display:grid;place-items:center;padding:0 4px}
+.avatar{width:40px;height:40px;border-radius:50%;background:var(--gold);color:var(--maroon);display:grid;place-items:center;font-weight:800;flex:none}
+@media (max-width:760px){.topbar .logo .word{display:none}.topbar .in{gap:12px}.tb-right .avatar{display:none}}
+.page{max-width:1200px;margin:0 auto;padding:30px 20px 120px;display:flex;flex-direction:column;gap:22px}
+.page-h{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.page-h h1{font-size:30px;font-weight:800}
+.page-h p{color:var(--muted);margin-top:4px;max-width:46em}
+.sec-t{font-size:17px;font-weight:800}
+
+.notif-panel{position:absolute;right:0;top:50px;width:340px;max-width:calc(100vw - 32px);background:#fff;color:var(--ink);border-radius:18px;box-shadow:0 24px 50px -20px rgba(31,26,28,.45);border:1px solid var(--line);overflow:hidden;z-index:40}
+.notif-panel h4{padding:14px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.notif{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);font-size:13.5px}
+.notif:last-child{border-bottom:0}
+.notif .circ{width:32px;height:32px;font-size:13px}
+.notif time{display:block;font-size:12px;color:var(--muted)}
+.notif.unread{background:var(--blush)}
+
+/* Home */
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:16px;background:var(--gold-soft);border:1.5px solid var(--gold);border-radius:20px;padding:16px 20px}
+.banner .txt{flex:1;min-width:220px}
+.banner b{display:block;font-size:15.5px}
+.banner.ok{background:var(--ok-soft);border-color:var(--ok)}
+.banner.bad{background:var(--bad-soft);border-color:var(--rose)}
+.home-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px}
+@media (max-width:900px){.home-grid{grid-template-columns:minmax(0,1fr)}}
+.pcard{position:relative;overflow:hidden;background:linear-gradient(135deg,#7A2A42 0%,#5B1C2E 60%,#47131F 100%);color:#fff;border-radius:22px;padding:26px;display:flex;flex-direction:column;gap:18px;min-height:250px}
+.pcard .top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;position:relative}
+.pcard .lbl{color:var(--gold);font-size:12px;letter-spacing:.16em;font-weight:700}
+.pcard .nm{font-size:24px;font-weight:800;margin-top:4px}
+.pcard .id{font-size:13px;opacity:.75;letter-spacing:.06em}
+.pcard .ver{background:rgba(47,158,110,.2);color:#9BE3C1;border:1px solid rgba(155,227,193,.4)}
+.pcard .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:auto;position:relative}
+.pcard .stats small{display:block;font-size:12px;opacity:.7}
+.pcard .stats b{font-size:20px}
+.pcard .bgcrest{position:absolute;right:-30px;bottom:-30px;width:210px;height:210px;color:var(--gold);opacity:.12}
+.pcard .btn{position:relative}
+.quick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:480px){.quick{grid-template-columns:minmax(0,1fr)}}
+.qbtn{display:flex;flex-direction:column;gap:10px;align-items:flex-start;text-align:left;background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;transition:transform .15s ease,box-shadow .15s ease}
+.qbtn:hover{transform:translateY(-2px);box-shadow:0 14px 26px -18px rgba(110,35,56,.5)}
+.qbtn b{font-size:15px}
+.qbtn span{font-size:13px;color:var(--muted)}
+.list{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:14px;padding:12px 0;border-top:1px solid var(--line)}
+.li:first-child{border-top:0;padding-top:0}
+.li .txt{flex:1;min-width:0}
+.li b{display:block;font-size:14.5px}
+.li .s{font-size:13px;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:22px 10px;display:flex;flex-direction:column;align-items:center;gap:8px}
+.chart-legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted);margin-bottom:6px}
+.chart-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+/* Passport page */
+.sig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr));gap:16px}
+.sigc{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.sigc .hd{display:flex;align-items:center;gap:12px}
+.sigc .hd b{font-size:15.5px;display:block}
+.sigc .hd span{font-size:12.5px;color:var(--muted)}
+.sigc .read{font-size:22px;font-weight:800;color:var(--maroon)}
+.sigc .meter{height:8px;border-radius:999px;background:var(--grey);overflow:hidden}
+.sigc .meter i{display:block;height:100%;border-radius:999px;background:var(--coral);transition:width .4s ease}
+.sigc details{border-top:1px dashed var(--line);padding-top:10px}
+.sigc summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--maroon)}
+.sigc .math{font-size:13px;color:var(--muted);margin-top:8px;display:flex;flex-direction:column;gap:4px}
+.sigc .math code{font-family:var(--font);font-weight:700;color:var(--ink)}
+
+/* Sources */
+.src{display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;padding:16px 0;border-top:1px solid var(--line)}
+.src:first-child{border-top:0;padding-top:0}
+.src .txt{flex:1;min-width:200px}
+.src b{display:block}
+.src .s{font-size:13px;color:var(--muted)}
+.src .amt{font-weight:800;color:var(--maroon);text-align:right;white-space:nowrap}
+.src .amt small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+
+/* Sharing */
+.req{background:#fff;border:1.5px solid var(--line);border-radius:22px;overflow:hidden}
+.req-h{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:18px 22px;background:var(--blush)}
+.req-h .txt{flex:1;min-width:200px}
+.req-b{padding:20px 22px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;border-top:1px solid var(--line)}
+@media (max-width:860px){.req-b{grid-template-columns:minmax(0,1fr)}}
+.share-row{display:flex;align-items:center;gap:14px;padding:11px 0;border-top:1px solid var(--line);cursor:pointer}
+.share-row:first-of-type{border-top:0}
+.share-row .txt{flex:1;min-width:0}
+.share-row b{display:block;font-size:14.5px}
+.share-row span{font-size:12.5px;color:var(--muted)}
+.share-row .circ{width:36px;height:36px;font-size:14px}
+.summary-box{background:var(--blush);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px;align-self:start}
+.summary-box dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:14px}
+.summary-box dt{color:var(--muted)}
+.summary-box dd{margin:0;font-weight:700;text-align:right}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.opt{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;font-weight:600;font-size:13.5px}
+.opt[aria-pressed="true"]{background:var(--maroon);border-color:var(--maroon);color:#fff}
+
+/* Activity */
+.tl{display:flex;flex-direction:column}
+.tl .ev{display:flex;gap:16px;padding-bottom:18px;position:relative}
+.tl .ev::before{content:"";position:absolute;left:21px;top:44px;bottom:0;width:2px;background:var(--line)}
+.tl .ev:last-child::before{display:none}
+.tl .ev .txt{flex:1;padding-top:2px}
+.tl time{font-size:12.5px;color:var(--muted)}
+
+/* Modal & toast */
+.overlay{position:fixed;inset:0;background:rgba(31,26,28,.45);z-index:60;display:grid;place-items:center;padding:20px}
+.modal{background:#fff;border-radius:24px;width:100%;max-width:520px;max-height:calc(100vh - 40px);overflow-y:auto;padding:26px;display:flex;flex-direction:column;gap:16px;box-shadow:0 40px 80px -30px rgba(31,26,28,.6)}
+.modal h2{font-size:22px;font-weight:800}
+.modal .x{align-self:flex-end;margin:-10px -10px -20px 0}
+.inst{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;transition:border-color .15s ease}
+.inst:hover:not(:disabled){border-color:var(--rose)}
+.inst:disabled{opacity:.55;cursor:not-allowed}
+.inst .txt{flex:1}
+.inst b{display:block}
+.inst span{font-size:12.5px;color:var(--muted)}
+.grp{display:flex;flex-direction:column;gap:8px}
+.grp .gl{font-size:13px;color:var(--muted);font-weight:700}
+.consent{background:var(--blush);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.consent ul{margin:0;padding-left:20px}
+.spinner{width:56px;height:56px;border-radius:50%;border:5px solid var(--pink);border-top-color:var(--coral);animation:spin 1s linear infinite;margin:10px auto}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast-wrap{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:70;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:max-content;max-width:calc(100vw - 32px)}
+.toast{background:var(--ink);color:#fff;border-radius:999px;padding:11px 20px;font-weight:600;font-size:14px;display:flex;align-items:center;gap:10px;box-shadow:0 14px 30px -14px rgba(0,0,0,.5);animation:tin .25s ease}
+.toast svg{color:#9BE3C1}
+@keyframes tin{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+
+/* ---------- Lender shell ---------- */
+.lshell{display:grid;grid-template-columns:240px minmax(0,1fr);min-height:100vh;background:var(--grey)}
+@media (max-width:860px){.lshell{grid-template-columns:minmax(0,1fr)}}
+.lside{background:var(--maroon-deep);color:#fff;padding:22px 14px;display:flex;flex-direction:column;gap:24px}
+.lside .logo{color:#fff;padding-inline:8px}
+.lside .logo .lm{background:var(--gold);color:var(--maroon)}
+.lside .org{padding:0 8px;font-size:12.5px;opacity:.7;margin-top:-16px}
+.lnav{display:flex;flex-direction:column;gap:4px}
+.lnav button{display:flex;align-items:center;gap:12px;background:transparent;border:0;color:rgba(255,255,255,.72);padding:10px 12px;border-radius:12px;font-weight:600;text-align:left;white-space:nowrap}
+.lnav button:hover{background:rgba(255,255,255,.07);color:#fff}
+.lnav button[aria-current="page"]{background:rgba(255,255,255,.14);color:#fff}
+.lnav .cnt{margin-left:auto;background:var(--gold);color:var(--maroon);border-radius:999px;font-size:11.5px;font-weight:800;padding:1px 8px}
+.lside .me{margin-top:auto;display:flex;align-items:center;gap:10px;padding:8px;font-size:13px}
+.lside .me .avatar{width:34px;height:34px;font-size:13px}
+@media (max-width:860px){.lside{flex-direction:row;flex-wrap:wrap;align-items:center;padding:12px 16px;gap:12px}.lside .org,.lside .me{display:none}.lnav{flex-direction:row;overflow-x:auto;width:100%}}
+.lmain{padding:28px 32px 120px;display:flex;flex-direction:column;gap:20px;min-width:0}
+@media (max-width:600px){.lmain{padding:20px 16px 120px}}
+.lmain .page-h h1{font-size:26px}
+.tbl-wrap{background:#fff;border:1px solid var(--line);border-radius:18px;overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
+.tbl th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:12px 16px;border-bottom:1px solid var(--line);background:#FCFAFA}
+.tbl td{padding:14px 16px;border-bottom:1px solid var(--line)}
+.tbl tr:last-child td{border-bottom:0}
+.tbl tr.click{cursor:pointer}
+.tbl tr.click:hover td{background:var(--blush)}
+.tbl .who{display:flex;align-items:center;gap:10px;font-weight:700}
+.tbl .who .avatar{width:32px;height:32px;font-size:12.5px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:860px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;min-width:0}
+.kpi small{display:block;color:var(--muted);font-size:12.5px}
+.kpi b{font-size:22px;font-weight:800}
+.back{align-self:flex-start}
+.app-h{display:flex;flex-wrap:wrap;align-items:center;gap:14px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.app-h .avatar{width:48px;height:48px;font-size:18px}
+.app-h .txt{flex:1;min-width:200px}
+.app-h h2{font-size:21px;font-weight:800}
+.ltabs{display:flex;gap:4px;border-bottom:1.5px solid var(--line)}
+.ltabs button{border:0;background:transparent;padding:10px 16px;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1.5px}
+.ltabs button[aria-current="page"]{color:var(--maroon);border-bottom-color:var(--coral)}
+.lgrid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:1000px){.lgrid{grid-template-columns:minmax(0,1fr)}}
+.portal{background:#fff;border:2px solid var(--maroon);border-radius:20px;overflow:hidden}
+.portal-h{background:var(--maroon);color:#fff;padding:14px 20px;font-weight:700;font-size:14px;display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:space-between;align-items:center}
+.prow{display:flex;align-items:center;gap:14px;padding:14px 20px;border-top:1px solid var(--line)}
+.portal-h + .prow{border-top:0}
+.prow .ic{color:var(--coral);width:24px;text-align:center;font-size:17px;flex:none}
+.prow .k{flex:1;min-width:0}
+.prow .v{font-weight:800;color:var(--maroon);font-size:16.5px;text-align:right}
+.prow .v.hl{color:var(--coral)}
+.prow.off .v{color:#B8A9AD;font-weight:600;font-size:13.5px}
+.prow.off .ic{color:#C9BBBF}
+.rule-card{background:var(--gold);border-radius:20px;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.rule-card .t{font-weight:800;font-size:12.5px;letter-spacing:.06em;text-transform:uppercase}
+.rule-card .big{font-size:50px;font-weight:800;line-height:1}
+.gauge{position:relative;height:20px;background:#fff;border-radius:999px}
+.gauge .fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--coral);transition:width .35s ease}
+.gauge .lim{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--ink);border-radius:2px}
+.gauge-cap{position:relative;height:16px;font-size:12px;font-weight:700}
+.gauge-cap span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.decide{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.decide .row{display:flex;flex-wrap:wrap;gap:10px}
+.note-box{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 18px;display:flex;gap:12px;font-size:14px}
+.note-box svg{color:var(--gold);font-size:20px;flex:none;margin-top:2px}
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:700px){.compare{grid-template-columns:minmax(0,1fr)}}
+.cmp{background:#fff;border-radius:18px;padding:18px 20px;display:flex;flex-direction:column;gap:10px;border:1px solid var(--line);border-top:6px solid var(--rose)}
+.cmp.b{border-top-color:var(--maroon)}
+.cmp h3{font-size:16px;font-weight:800}
+.cmp dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:6px 14px;font-size:14px}
+.cmp dt{color:var(--muted)}
+.cmp dd{margin:0;font-weight:700;text-align:right}
+.scen{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:600px){.scen{grid-template-columns:minmax(0,1fr)}}
+.ctl{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 16px;display:flex;flex-direction:column;gap:2px}
+.ctl label{font-size:13px;color:var(--muted);font-weight:600}
+.ctl output{font-weight:800;color:var(--maroon);font-size:17px}
+.work{overflow-x:auto}
+.work table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+.work th,.work td{text-align:left;padding:10px;border-top:1px solid var(--line);vertical-align:top}
+.work th{border-top:0;color:var(--coral);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.work td.f{color:var(--muted)}
+.work td.r{font-weight:700;white-space:nowrap}
+.bands{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:600px){.bands{grid-template-columns:minmax(0,1fr)}}
+.band{border-radius:16px;padding:14px 16px;background:var(--blush);display:flex;flex-direction:column;gap:2px}
+.band b{font-size:20px;color:var(--maroon)}
+.waiting{background:#fff;border:1.5px dashed var(--rose);border-radius:20px;padding:40px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--muted)}
+.waiting b{color:var(--ink);font-size:16px}
+
+/* Demo switch */
+.demo-switch{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:50;background:var(--ink);color:#fff;border-radius:999px;padding:6px;display:flex;align-items:center;gap:4px;box-shadow:0 16px 36px -14px rgba(0,0,0,.55)}
+.demo-switch .lab{font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.6;padding:0 8px 0 10px}
+.demo-switch button{border:0;background:transparent;color:rgba(255,255,255,.75);border-radius:999px;padding:8px 14px;font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px}
+.demo-switch button[aria-pressed="true"]{background:#fff;color:var(--ink)}
+.demo-switch .rs{color:rgba(255,255,255,.6);padding:8px 10px}
+@media (max-width:600px){.demo-switch .lab{display:none}.demo-switch{right:10px;left:10px;justify-content:center}}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<div class="toast-wrap" id="toasts" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+/* ================= data ================= */
+const MONTHS=["Nov","Dec","Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct"];
+const RATE=0.07;
+const COL=["var(--maroon)","var(--coral)","var(--gold)","var(--rose)"];
+// Arjun's sources. All institution names are fictional.
+const SOURCES={
+  ride:{label:"RideGo",kind:"Ride-hail · weekly payouts",icon:"fa-car-side",inflow:[1700,2300,1200,2100,2400,1400,2300,1300,2500,1800,1200,2000]},
+  free:{label:"Lion City Bank",kind:"Savings account · freelance client transfers",icon:"fa-building-columns",inflow:[2600,0,3400,600,0,2900,1500,3600,200,1800,3100,300]},
+  qr:{label:"Merlion Pay",kind:"E-wallet · QR stall payments",icon:"fa-wallet",inflow:[550,750,450,650,850,350,550,750,450,650,550,750]},
+  food:{label:"FoodDash",kind:"Delivery · weekend shifts",icon:"fa-motorcycle",inflow:[300,0,450,200,350,0,400,250,0,300,450,200]}
+};
+const CATALOG=[
+  {group:"Gig and freelance apps",items:["food",{label:"TaskHive",kind:"Freelance marketplace",icon:"fa-laptop-code",soon:true}]},
+  {group:"E-wallets",items:[{label:"Kopi Wallet",kind:"E-wallet",icon:"fa-mug-hot",soon:true}]},
+  {group:"Banks",items:[{label:"Harbour Bank",kind:"Current and savings accounts",icon:"fa-landmark",soon:true}]}
+];
+const ARJUN={name:"Arjun Mehta",first:"Arjun",fid:"FP-2041-7730",debt:860,spend:2400,balance:9800,arrears:0,noa:2900,salary:0};
+// Other applicants already in the lender's queue.
+const OTHERS={
+  daniel:{name:"Daniel Tan",first:"Daniel",ref:"#8836",received:"Yesterday, 16:12",purpose:"Personal loan",amt:8000,ten:24,debt:400,spend:1700,balance:1300,arrears:2,noa:2100,salary:0,
+    sources:[{label:"Delivery app",inflow:[3100,1200,3900,1900,900,3600,2800,1300,4100,2400,1000,3300]}]},
+  priya:{name:"Priya Nair",first:"Priya",ref:"#8829",received:"Mon, 10:47",purpose:"Renovation loan",amt:10000,ten:24,debt:900,spend:2300,balance:14500,arrears:0,noa:4000,salary:2500,
+    sources:[{label:"Part-time salary",inflow:Array(12).fill(2500)},{label:"Tutoring",inflow:[1200,1300,900,1400,1100,800,1300,1400,1000,1200,900,1300]},{label:"Online shop",inflow:[400,600,500,900,300,500,700,600,400,800,500,600]}]}
+};
+const SIGNALS=[
+  {id:"stab",name:"Income stability",q:"How much does income swing?",icon:"fa-chart-line"},
+  {id:"div",name:"Source diversity",q:"Is one client carrying everything?",icon:"fa-chart-pie"},
+  {id:"cover",name:"Cash-flow cover",q:"Can this loan be carried?",icon:"fa-money-bill-wave"},
+  {id:"rep",name:"Repayment record",q:"Are bills paid on time?",icon:"fa-calendar-check"},
+  {id:"buf",name:"Savings buffer",q:"How many bad months can be absorbed?",icon:"fa-piggy-bank"}
+];
+
+/* ================= state ================= */
+let S;
+function freshState(){
+  return {
+    role:"user", authed:false, loginStep:0, uview:"home", notifOpen:false,
+    linked:{ride:true,free:true,qr:true,food:false},
+    req:{status:"pending",share:{stab:true,div:true,cover:true,rep:true,buf:true,raw:false},expiry:7,sharedAt:null},
+    notifs:[{t:"09:30",icon:"fa-envelope-open-text",cls:"c-gold",msg:"Lender X requested your passport for a S$10,000 personal loan.",unread:true}],
+    activity:[
+      {t:"Today, 09:30",icon:"fa-envelope-open-text",cls:"c-gold",msg:"Lender X requested your passport",sub:"Personal loan · S$10,000 over 24 months"},
+      {t:"28 Oct, 20:14",icon:"fa-user-check",cls:"c-coral",msg:"Passport verified",sub:"3 sources · 12 months of history"},
+      {t:"28 Oct, 20:11",icon:"fa-link",cls:"c-maroon",msg:"Connected RideGo, Lion City Bank and Merlion Pay",sub:"Read-only access, revocable at any time"}],
+    lview:"inbox", lapp:null, ltab:"passport", policy:45,
+    decisions:{arjun:null,daniel:null,priya:null}, viewedArjun:false,
+    scen:{arjun:{amt:10000,ten:24},daniel:{amt:8000,ten:24},priya:{amt:10000,ten:24}},
+    modal:null
+  };
+}
+S=freshState();
+
+/* ================= model ================= */
+const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const median=a=>{const s=[...a].sort((x,y)=>x-y),n=s.length;return n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2};
+const psd=a=>{const m=mean(a);return Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/a.length)};
+const instalment=(P,n)=>{const r=RATE/12;return P*r/(1-Math.pow(1+r,-n))};
+const band=st=>st>=0.85?{b:"A",h:0.10}:st>=0.65?{b:"B",h:0.20}:{b:"C",h:0.30};
+function model(p,series,amt,ten){
+  const total=MONTHS.map((_,i)=>series.reduce((a,s)=>a+s[i],0));
+  const has=series.length>0;
+  const m=has?mean(total):0, sd=has?psd(total):0, cv=m?sd/m:0, stab=m?Math.max(0,1-cv):0;
+  const sums=series.map(s=>s.reduce((a,b)=>a+b,0)), T=sums.reduce((a,b)=>a+b,0);
+  const hhi=T?sums.reduce((a,x)=>a+(x/T)**2,0):1, div=1-hhi;
+  const med=has?median(total):0, bd=band(stab), recog=med*(1-bd.h);
+  const inst=instalment(amt,ten), service=p.debt+inst;
+  const dsr=recog?service/recog:Infinity, net=med-p.spend, cover=net/service;
+  const buf=p.balance/(p.spend+p.debt), rep=12-p.arrears;
+  const ruleA=p.salary+(p.noa-p.salary)*0.7, dsrA=service/ruleA;
+  return {total,m,sd,cv,stab,T,hhi,div,med,bd,recog,inst,service,dsr,net,cover,buf,rep,ruleA,dsrA,n:series.length,amt,ten,p};
+}
+const linkedIds=()=>Object.keys(SOURCES).filter(k=>S.linked[k]);
+function seriesOf(id){return id==="arjun"?linkedIds().map(k=>SOURCES[k].inflow):OTHERS[id].sources.map(s=>s.inflow)}
+function labelsOf(id){return id==="arjun"?linkedIds().map(k=>SOURCES[k].label):OTHERS[id].sources.map(s=>s.label)}
+function personOf(id){return id==="arjun"?ARJUN:OTHERS[id]}
+function arjunModel(){return model(ARJUN,seriesOf("arjun"),10000,24)}
+function scenModel(id){const sc=S.scen[id];return model(personOf(id),seriesOf(id),sc.amt,sc.ten)}
+
+/* ================= helpers ================= */
+const sgd=v=>(v<0?"−":"")+"S$"+Math.abs(Math.round(v)).toLocaleString("en-SG");
+const pct=v=>isFinite(v)?(v*100).toFixed(0)+"%":"–";
+const f2=v=>v.toFixed(2);
+const hm=()=>new Date().toTimeString().slice(0,5);
+const now=()=>"Today, "+hm();
+const sharedCount=()=>SIGNALS.filter(s=>S.req.share[s.id]).length;
+const reduceMotion=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+function toast(msg,icon){
+  const w=document.getElementById("toasts");
+  const t=document.createElement("div");t.className="toast";t.innerHTML=`<i class="fa-solid ${icon||"fa-circle-check"}"></i><span></span>`;
+  t.querySelector("span").textContent=msg;w.appendChild(t);setTimeout(()=>t.remove(),3200);
+}
+function notify(msg,icon,cls){S.notifs.unshift({t:hm(),icon,cls,msg,unread:true})}
+function act(msg,sub,icon,cls){S.activity.unshift({t:now(),msg,sub,icon,cls})}
+const CREST_INNER=`<circle cx="50" cy="50" r="44" stroke="currentColor" stroke-width="2" fill="none"/><path d="M44 24a24 24 0 1 0 0 52a20 20 0 1 1 0-52z" fill="currentColor"/><g fill="currentColor"><polygon points="62,30 63.5,34.5 68,34.5 64.4,37.2 65.8,41.6 62,39 58.2,41.6 59.6,37.2 56,34.5 60.5,34.5"/><polygon points="74,42 75.5,46.5 80,46.5 76.4,49.2 77.8,53.6 74,51 70.2,53.6 71.6,49.2 68,46.5 72.5,46.5"/><polygon points="69,58 70.5,62.5 75,62.5 71.4,65.2 72.8,69.6 69,67 65.2,69.6 66.6,65.2 63,62.5 67.5,62.5"/><polygon points="55,58 56.5,62.5 61,62.5 57.4,65.2 58.8,69.6 55,67 51.2,69.6 52.6,65.2 49,62.5 53.5,62.5"/><polygon points="50,42 51.5,46.5 56,46.5 52.4,49.2 53.8,53.6 50,51 46.2,53.6 47.6,49.2 44,46.5 48.5,46.5"/></g>`;
+const crest=cls=>`<svg class="${cls}" viewBox="0 0 100 100" aria-hidden="true">${CREST_INNER}</svg>`;
+const SPARK=st=>`<svg class="sparkle" style="${st}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0C13 8 16 11 24 12C16 13 13 16 12 24C11 16 8 13 0 12C8 11 11 8 12 0Z" fill="currentColor"/></svg>`;
+function skyline(){
+  const c="rgba(110,35,56,.15)",c2="rgba(110,35,56,.2)";
+  let s=`<svg viewBox="0 0 800 120" preserveAspectRatio="xMidYMax slice" aria-hidden="true">`;
+  [[0,70,26],[28,55,20],[50,85,30],[82,62,24],[108,95,16],[126,58,22],[150,80,26],[178,100,30],[210,72,20]].forEach(([x,h,w])=>s+=`<rect x="${x}" y="${120-h}" width="${w}" height="${h}" fill="${c}"/>`);
+  s+=`<path d="M240 120v-18a18 18 0 0 1 36 0v18z M272 120v-16a16 16 0 0 1 32 0v16z" fill="${c}"/>`;
+  s+=`<path d="M350 26h150v5H350z" fill="${c2}"/>`;[362,410,458].forEach(x=>s+=`<path d="M${x} 31h30l-3 89h-24z" fill="${c2}"/>`);
+  s+=`<g stroke="${c2}" stroke-width="2.5" fill="none"><circle cx="590" cy="52" r="42"/>`;
+  for(let a=0;a<12;a++){const t=a*Math.PI/6;s+=`<line x1="590" y1="52" x2="${590+42*Math.cos(t)}" y2="${52+42*Math.sin(t)}" stroke-width="1.2"/>`}
+  s+=`<line x1="590" y1="52" x2="566" y2="120"/><line x1="590" y1="52" x2="614" y2="120"/></g>`;
+  [[660,40,26],[688,62,22],[712,48,28],[742,76,22],[766,54,34]].forEach(([x,h,w])=>s+=`<rect x="${x}" y="${120-h}" width="${w}" height="${h}" fill="${c}"/>`);
+  return s+`</svg>`;
+}
+function qrSVG(){
+  let seed=7;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280};
+  const N=25;let s=`<svg viewBox="0 0 ${N} ${N}" width="100%" height="100%" shape-rendering="crispEdges" role="img" aria-label="Simulated login code">`;
+  const finder=(x,y)=>`<rect x="${x}" y="${y}" width="7" height="7" fill="var(--maroon)"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="#fff"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="var(--maroon)"/>`;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const inF=(x<8&&y<8)||(x>N-9&&y<8)||(x<8&&y>N-9);if(!inF&&rnd()>.52)s+=`<rect x="${x}" y="${y}" width="1" height="1" fill="#1F1A1C"/>`}
+  return s+finder(0,0)+finder(N-7,0)+finder(0,N-7)+`</svg>`;
+}
+function incomeChart(series,labels,med){
+  const W=560,H=200,L=36,B=24,T=14,R=6;
+  const total=MONTHS.map((_,i)=>series.reduce((a,s)=>a+s[i],0));
+  const max=Math.max(5000,Math.ceil(Math.max(...total,1)/1000)*1000);
+  const bw=(W-L-R)/12,y=v=>H-B-(v/max)*(H-B-T);
+  let g="";
+  for(let v=0;v<=max;v+=1000){if(max>6000&&v%2000)continue;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#EFDDE0"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="11">${v/1000}k</text>`}
+  MONTHS.forEach((mo,i)=>{let base=0;series.forEach((s,si)=>{const v=s[i];if(!v)return;g+=`<rect x="${L+i*bw+4}" y="${y(base+v)}" width="${bw-8}" height="${y(base)-y(base+v)}" fill="${COL[si%4]}" rx="2"/>`;base+=v});
+    g+=`<text x="${L+i*bw+bw/2}" y="${H-6}" text-anchor="middle" font-size="11">${mo}</text>`});
+  if(med)g+=`<line x1="${L}" x2="${W-R}" y1="${y(med)}" y2="${y(med)}" stroke="#1F1A1C" stroke-dasharray="4 4" stroke-width="1.3"/><text x="${W-R}" y="${y(med)-6}" text-anchor="end" font-size="11.5" style="fill:#1F1A1C;font-weight:700">Typical month ${sgd(med)}</text>`;
+  if(!series.length)g+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="13">No income sources connected</text>`;
+  const leg=labels.map((l,i)=>`<span><i style="background:${COL[i%4]}"></i>${l}</span>`).join("");
+  return `<div class="chart-legend">${leg}</div><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Monthly income by source, last 12 months">${g}</svg>`;
+}
+
+/* plain-language readings for the applicant */
+function reading(id,c){
+  switch(id){
+    case "stab":return {r:c.stab>=.85?"Very steady":c.stab>=.65?"Fairly steady":"Up and down",v:f2(c.stab),bar:c.stab,
+      math:[`Average month <code>${sgd(c.m)}</code>, typical swing <code>${sgd(c.sd)}</code>`,`Stability = 1 − ${sgd(c.sd)} ÷ ${sgd(c.m)} = <code>${f2(c.stab)}</code>`,`Lenders read this as band <code>${c.bd.b}</code> (${Math.round(c.bd.h*100)}% haircut)`]};
+    case "div":return {r:c.div>=.5?"Well spread":c.div>=.2?"Some spread":"One main source",v:f2(c.div),bar:Math.min(c.div/.7,1),
+      math:[`${c.n} source${c.n===1?"":"s"} connected`,`Diversity = 1 − Σ(share²) = 1 − ${f2(c.hhi)} = <code>${f2(c.div)}</code>`]};
+    case "cover":return {r:c.cover>=1.5?"Comfortable":c.cover>=1?"Enough":"Tight",v:f2(c.cover)+"×",bar:Math.min(Math.max(c.cover,0)/2.5,1),
+      math:[`Typical month after living costs: ${sgd(c.med)} − ${sgd(c.p.spend)} = <code>${sgd(c.net)}</code>`,`Debt payments incl. a ${sgd(c.amt)} loan: <code>${sgd(c.service)}</code>`,`Cover = <code>${f2(c.cover)}×</code>`]};
+    case "rep":return {r:c.p.arrears?`${c.p.arrears} late payment${c.p.arrears>1?"s":""}`:"Always on time",v:`${c.rep}/12`,bar:c.rep/12,
+      math:[`Months with no arrears in the last 12: <code>${c.rep}</code>`]};
+    case "buf":return {r:c.buf>=3?"Strong cushion":c.buf>=1?"Some cushion":"Thin cushion",v:c.buf.toFixed(1)+" months",bar:Math.min(c.buf/6,1),
+      math:[`Average balance <code>${sgd(c.p.balance)}</code> ÷ monthly outgoings <code>${sgd(c.p.spend+c.p.debt)}</code> = <code>${c.buf.toFixed(1)} months</code>`]};
+  }
+}
+
+/* ================= applicant views ================= */
+function loginArt(){
+  return `<div class="sun"></div>${SPARK("top:90px;right:12%;width:20px;height:20px")}${SPARK("top:46%;left:4%;width:16px;height:16px")}
+    <div class="logo"><span class="lm"><i class="fa-solid fa-passport"></i></span>FINPASS</div>
+    <h1>Your financial life is more than a payslip.</h1>
+    <p>One verified passport for all your income: salary, freelance, gig work and side business. You choose what each lender sees.</p>
+    <p class="vals">User-controlled · Consent-based · Built for Singapore</p>
+    <div class="passport" aria-hidden="true"><span class="rep">REPUBLIC OF SINGAPORE</span>${crest("crest")}<span class="pn">FINPASS</span><span class="rl"></span><span class="sub">SINGAPORE<br>FINANCIAL IDENTITY</span><i class="fa-solid fa-microchip" style="margin-top:auto;font-size:18px"></i></div>
+    <div class="skyline">${skyline()}</div>`;
+}
+function vLogin(){
+  const right=S.loginStep===1?`<div class="login-box">
+      <button class="btn b-ghost b-sm" data-act="login-back" style="align-self:flex-start"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      <div class="qr-wrap"><h2>Scan to log in</h2><p class="muted">Open your Singpass app and scan this code to log in to FinPass.</p>
+      <div class="qr">${qrSVG()}</div>
+      <button class="sp-btn" data-act="login-approve"><i class="fa-solid fa-mobile-screen-button"></i> I've approved it on my phone</button>
+      <p class="sim">Simulated login for the prototype. No real Singpass connection is made.</p></div></div>`
+    :`<div class="login-box">
+      <h2>Welcome back</h2><p class="muted">Log in to manage your Financial Passport, review lender requests and control who can see your data.</p>
+      <button class="sp-btn" data-act="login-start"><i class="fa-solid fa-qrcode"></i> Log in with Singpass</button>
+      <div class="divider">New to FinPass?</div>
+      <button class="btn b-line" data-act="login-start">Create your passport</button>
+      <p class="small muted">FinPass never sees your banking passwords. Every connection is read-only and you can revoke it at any time.</p>
+      <p class="small muted">Lender? Switch to Lender X with the demo control at the bottom right.</p></div>`;
+  return `<div class="login"><div class="login-art">${loginArt()}</div><div class="login-form">${right}</div></div>`;
+}
+function topbar(){
+  const unread=S.notifs.filter(n=>n.unread).length;
+  const tabs=[["home","Home"],["passport","My passport"],["sources","Income sources"],["sharing","Sharing"],["activity","Activity"]];
+  const cur=S.uview==="review"?"sharing":S.uview;
+  return `<header class="topbar"><div class="in">
+    <div class="logo"><span class="lm"><i class="fa-solid fa-passport"></i></span><span class="word">FINPASS</span></div>
+    <nav class="tabs" aria-label="FinPass">${tabs.map(([k,l])=>`<button data-act="uview" data-arg="${k}" ${cur===k?'aria-current="page"':""}>${l}${k==="sharing"&&S.req.status==="pending"?'<span class="n">1</span>':""}</button>`).join("")}</nav>
+    <div class="tb-right">
+      <button class="icon-btn" data-act="notif" aria-label="Notifications"><i class="fa-solid fa-bell"></i>${unread?`<span class="dot">${unread}</span>`:""}</button>
+      <span class="avatar" title="${ARJUN.name}">A</span>
+      ${S.notifOpen?`<div class="notif-panel" data-act="panel"><h4>Notifications</h4>${S.notifs.map(n=>`<div class="notif ${n.unread?"unread":""}"><span class="circ ${n.cls}"><i class="fa-solid ${n.icon}"></i></span><div>${n.msg}<time>${n.t}</time></div></div>`).join("")||'<div class="empty">Nothing new.</div>'}</div>`:""}
+    </div></div></header>`;
+}
+function vHome(){
+  const c=arjunModel();
+  const banner=S.req.status==="pending"?`<div class="banner"><span class="circ c-gold"><i class="fa-solid fa-envelope-open-text"></i></span><div class="txt"><b>Lender X wants to see your passport</b><span class="muted small">For a S$10,000 personal loan over 24 months · requested today at 09:30</span></div><button class="btn b-maroon" data-act="uview" data-arg="review">Review request <i class="fa-solid fa-arrow-right"></i></button></div>`:"";
+  const dec=S.decisions.arjun;
+  const decBanner=dec&&S.req.status==="shared"?`<div class="banner ${dec==="approved"?"ok":"bad"}"><span class="circ" style="background:${dec==="approved"?"var(--ok)":"var(--bad)"}"><i class="fa-solid ${dec==="approved"?"fa-circle-check":"fa-circle-xmark"}"></i></span><div class="txt"><b>${dec==="approved"?"Lender X approved your S$10,000 loan":"Lender X declined your application"}</b><span class="muted small">${dec==="approved"?"They'll contact you to sign the loan agreement. You can revoke their access to your passport whenever you like.":"Your passport is still yours. You can share it with another lender at any time."}</span></div></div>`:"";
+  const shares=S.req.status==="shared"?`<div class="li"><span class="circ c-maroon"><i class="fa-solid fa-building"></i></span><div class="txt"><b>Lender X</b><span class="s">${sharedCount()} signals · expires in ${S.req.expiry} days</span></div><span class="badge bd-ok">Active</span></div>`:`<div class="empty"><i class="fa-solid fa-lock" style="font-size:22px;color:var(--rose)"></i>No one can see your passport right now.</div>`;
+  return `<main class="page">
+    <div class="page-h"><div><h1>Good morning, ${ARJUN.first}</h1><p>Here's your Financial Passport at a glance.</p></div></div>
+    ${banner}${decBanner}
+    <div class="home-grid">
+      <div class="pcard">${crest("bgcrest")}
+        <div class="top"><div><div class="lbl">FINANCIAL PASSPORT</div><div class="nm">${ARJUN.name}</div><div class="id">${ARJUN.fid}</div></div><span class="badge ver"><i class="fa-solid fa-circle-check"></i> Verified</span></div>
+        <div class="stats"><div><small>Typical month</small><b>${sgd(c.med)}</b></div><div><small>Sources</small><b>${c.n}</b></div><div><small>History</small><b>12 months</b></div></div>
+        <button class="btn b-line b-sm" data-act="uview" data-arg="passport" style="align-self:flex-start">View my signals</button>
+      </div>
+      <div class="quick">
+        <button class="qbtn" data-act="add-source"><span class="circ c-coral"><i class="fa-solid fa-plus"></i></span><b>Add an income source</b><span>Bank, e-wallet or gig app</span></button>
+        <button class="qbtn" data-act="uview" data-arg="sharing"><span class="circ c-maroon"><i class="fa-solid fa-paper-plane"></i></span><b>Share with a lender</b><span>Choose exactly what they see</span></button>
+        <button class="qbtn" data-act="uview" data-arg="passport"><span class="circ c-gold"><i class="fa-solid fa-layer-group"></i></span><b>My five signals</b><span>How lenders read your income</span></button>
+        <button class="qbtn" data-act="uview" data-arg="activity"><span class="circ c-soft"><i class="fa-solid fa-clock-rotate-left"></i></span><b>Activity</b><span>Every view and share, logged</span></button>
+      </div>
+    </div>
+    <div class="home-grid">
+      <div class="card"><div class="card-h"><h3>Income, last 12 months</h3><span class="small muted">Nov 2025 to Oct 2026</span></div>${incomeChart(seriesOf("arjun"),labelsOf("arjun"),c.med)}</div>
+      <div class="card"><div class="card-h"><h3>Who can see your passport</h3><button class="btn b-ghost b-sm" data-act="uview" data-arg="sharing">Manage</button></div><div class="list">${shares}</div>
+        <div class="card-h" style="margin-top:22px"><h3>Recent activity</h3><button class="btn b-ghost b-sm" data-act="uview" data-arg="activity">See all</button></div>
+        <div class="list">${S.activity.slice(0,3).map(a=>`<div class="li"><span class="circ ${a.cls}" style="width:34px;height:34px;font-size:13px"><i class="fa-solid ${a.icon}"></i></span><div class="txt"><b>${a.msg}</b><span class="s">${a.t}</span></div></div>`).join("")}</div>
+      </div>
+    </div></main>`;
+}
+function vPassport(){
+  const c=arjunModel();
+  const cards=SIGNALS.map((s,i)=>{const r=reading(s.id,c);return `<div class="sigc">
+    <div class="hd"><span class="circ ${i%2?"c-coral":"c-maroon"}"><i class="fa-solid ${s.icon}"></i></span><div><b>${s.name}</b><span>${s.q}</span></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><span class="read">${r.r}</span><span class="badge bd-grey">${r.v}</span></div>
+    <div class="meter"><i style="width:${Math.max(0,Math.min(1,r.bar))*100}%"></i></div>
+    <details><summary>How is this worked out?</summary><div class="math">${r.math.map(m=>`<span>${m}</span>`).join("")}</div></details></div>`}).join("");
+  return `<main class="page">
+    <div class="page-h"><div><h1>My passport</h1><p>Five signals built from 12 months of verified income. It's not a credit score: each lender applies its own rules.</p></div>
+      <span class="badge bd-ok" style="font-size:13.5px;padding:6px 14px"><i class="fa-solid fa-circle-check"></i> Verified 28 Oct 2026</span></div>
+    <div class="sig-grid">${cards}</div>
+    <div class="card"><div class="card-h"><h3>Where your income comes from</h3><button class="btn b-ghost b-sm" data-act="uview" data-arg="sources">Manage sources</button></div>${incomeChart(seriesOf("arjun"),labelsOf("arjun"),c.med)}</div>
+    <p class="small muted">Cash-flow cover assumes the S$10,000, 24-month loan Lender X asked about, at an illustrative 7% a year.</p>
+  </main>`;
+}
+function vSources(){
+  const rows=linkedIds().map(k=>{const s=SOURCES[k],tot=s.inflow.reduce((a,b)=>a+b,0);return `<div class="src">
+    <span class="circ" style="background:${COL[Object.keys(SOURCES).indexOf(k)%4]}"><i class="fa-solid ${s.icon}"></i></span>
+    <div class="txt"><b>${s.label}</b><span class="s">${s.kind}</span><div style="margin-top:6px"><span class="badge bd-ok"><i class="fa-solid fa-circle-check"></i> Verified · read-only</span></div></div>
+    <div class="amt">${sgd(tot)}<small>last 12 months</small></div>
+    <button class="btn b-bad b-sm" data-act="disconnect" data-arg="${k}">Disconnect</button></div>`}).join("");
+  return `<main class="page">
+    <div class="page-h"><div><h1>Income sources</h1><p>FinPass reads 12 months of history from each source. It never moves money or makes payments.</p></div>
+      <button class="btn b-coral" data-act="add-source"><i class="fa-solid fa-plus"></i> Add a source</button></div>
+    <div class="card">${rows||'<div class="empty" style="padding-top:0"><i class="fa-solid fa-link-slash" style="font-size:24px;color:var(--rose)"></i><b>No income sources connected</b>Add one to rebuild your passport.</div>'}
+      <div class="src"><span class="circ c-coral"><i class="fa-solid fa-id-card"></i></span><div class="txt"><b>Singpass</b><span class="s">Identity · name, NRIC, date of birth</span></div><span class="badge bd-grey">Required</span></div>
+    </div>
+    <div class="note-box"><i class="fa-solid fa-lightbulb"></i><span>Adding or removing a source updates your five signals straight away, including what any lender you've shared with can see.</span></div>
+  </main>`;
+}
+function vSharing(){
+  const st=S.req.status;
+  const head=(badge,extra,sub)=>`<div class="req"><div class="req-h"><span class="circ ${st==="shared"||st==="pending"?"c-maroon":"c-soft"}"><i class="fa-solid fa-building"></i></span><div class="txt"><b>Lender X · Personal loan</b><div class="small muted">${sub}</div></div>${badge}${extra}</div></div>`;
+  const pend=st==="pending"?head(`<span class="badge bd-warn">Waiting for you</span>`,`<button class="btn b-maroon" data-act="uview" data-arg="review">Review</button>`,"S$10,000 over 24 months · requested today at 09:30"):"";
+  const decided=S.decisions.arjun;
+  const active=st==="shared"?head(decided?`<span class="badge ${decided==="approved"?"bd-ok":"bd-bad"}">${decided==="approved"?"Loan approved":"Declined"}</span>`:`<span class="badge bd-ok">Active</span>`,`<button class="btn b-bad" data-act="revoke"><i class="fa-solid fa-lock"></i> Revoke access</button>`,`Shared ${S.req.sharedAt.toLowerCase()} · ${sharedCount()} signals${S.req.share.raw?" + raw transactions":""} · expires in ${S.req.expiry} days`):"";
+  const past=st==="revoked"?head(`<span class="badge bd-grey">Revoked</span>`,"","You revoked access. Lender X can no longer open your passport.")
+    :st==="declined"?head(`<span class="badge bd-grey">Declined</span>`,"","You declined this request. Nothing was shared."):"";
+  return `<main class="page">
+    <div class="page-h"><div><h1>Sharing</h1><p>Lenders ask; you decide. Every share has an expiry date and you can revoke it at any time.</p></div></div>
+    ${pend?`<h3 class="sec-t">Requests</h3>${pend}`:""}
+    <h3 class="sec-t">Active</h3>${active||'<div class="card empty"><i class="fa-solid fa-lock" style="font-size:22px;color:var(--rose)"></i>No active shares. No lender can see your passport.</div>'}
+    ${past?`<h3 class="sec-t">Past</h3>${past}`:""}
+  </main>`;
+}
+function vReview(){
+  if(S.req.status!=="pending")return vSharing();
+  const c=arjunModel();
+  const rows=[...SIGNALS.map((s,i)=>({...s,cls:i%2?"c-coral":"c-maroon",val:reading(s.id,c).r})),{id:"raw",name:"Raw transactions",q:"Every line of 12 months of statements",icon:"fa-receipt",cls:"c-gold",val:""}];
+  const any=sharedCount()||S.req.share.raw;
+  return `<main class="page">
+    <button class="btn b-ghost b-sm back" data-act="uview" data-arg="sharing"><i class="fa-solid fa-arrow-left"></i> Sharing</button>
+    <div class="req">
+      <div class="req-h"><span class="circ c-maroon"><i class="fa-solid fa-building"></i></span><div class="txt"><h2 style="font-size:21px">Lender X wants to see your passport</h2><div class="small muted">Request #8841 · received today at 09:30</div></div></div>
+      <div class="req-b">
+        <div><h3 style="font-size:16px;margin-bottom:6px">Choose what Lender X can see</h3><p class="small muted" style="margin-bottom:10px">They asked for all five signals. Raw transactions are optional and off by default.</p>
+          ${rows.map(r=>`<label class="share-row" for="sh-${r.id}"><span class="circ ${r.cls}"><i class="fa-solid ${r.icon}"></i></span><span class="txt"><b>${r.name}</b><span>${r.val?r.val+" · ":""}${r.q}</span></span><input type="checkbox" class="toggle" id="sh-${r.id}" data-share="${r.id}" ${S.req.share[r.id]?"checked":""}></label>`).join("")}
+        </div>
+        <div class="summary-box">
+          <h3 style="font-size:16px">Request details</h3>
+          <dl><dt>Purpose</dt><dd>Personal loan</dd><dt>Amount</dt><dd>S$10,000</dd><dt>Tenure</dt><dd>24 months</dd><dt>You're sharing</dt><dd>${sharedCount()} of 5 signals${S.req.share.raw?" + raw":""}</dd></dl>
+          <div><div class="small muted" style="margin-bottom:6px;font-weight:600">Access expires after</div><div class="chips">${[7,14,30].map(d=>`<button class="opt" data-act="expiry" data-arg="${d}" aria-pressed="${S.req.expiry===d}">${d} days</button>`).join("")}</div></div>
+          ${S.req.share.stab?"":`<div class="note-box" style="padding:10px 12px;font-size:13px"><i class="fa-solid fa-triangle-exclamation"></i><span>Without income stability, Lender X can't work out how much of your income to count, so they may not be able to decide.</span></div>`}
+          <button class="btn b-coral" data-act="approve-share" ${any?"":"disabled"}><i class="fa-solid fa-paper-plane"></i> Share with Lender X</button>
+          <button class="btn b-line" data-act="decline-req">Decline request</button>
+          <p class="small muted">Lender X sees only what's switched on, until access expires or you revoke it.</p>
+        </div>
+      </div>
+    </div></main>`;
+}
+function vActivity(){
+  return `<main class="page"><div class="page-h"><div><h1>Activity</h1><p>A full record of every connection, share and view. Lenders can't edit or delete it.</p></div></div>
+    <div class="card"><div class="tl">${S.activity.map(a=>`<div class="ev"><span class="circ ${a.cls}"><i class="fa-solid ${a.icon}"></i></span><div class="txt"><b>${a.msg}</b>${a.sub?`<div class="small muted">${a.sub}</div>`:""}<time>${a.t}</time></div></div>`).join("")}</div></div></main>`;
+}
+function vModal(){
+  const m=S.modal;if(!m)return "";
+  let body="";
+  if(m.step==="pick"){
+    const item=it=>{const s=typeof it==="string"?{...SOURCES[it],key:it}:it;const linked=s.key&&S.linked[s.key];
+      return `<button class="inst" ${s.soon||linked?"disabled":""} data-act="pick-source" data-arg="${s.key||""}"><span class="circ c-soft"><i class="fa-solid ${s.icon}"></i></span><span class="txt"><b>${s.label}</b><span>${s.kind}</span></span>${linked?'<span class="badge bd-ok">Connected</span>':s.soon?'<span class="badge bd-grey">Coming soon</span>':'<i class="fa-solid fa-chevron-right"></i>'}</button>`};
+    const back=Object.keys(SOURCES).filter(k=>k!=="food"&&!S.linked[k]);
+    body=`<h2>Add an income source</h2><p class="muted">Pick where some of your income arrives.</p>
+      ${back.length?`<div class="grp"><span class="gl">Reconnect</span>${back.map(item).join("")}</div>`:""}
+      ${CATALOG.map(g=>`<div class="grp"><span class="gl">${g.group}</span>${g.items.map(item).join("")}</div>`).join("")}`;
+  }else if(m.step==="consent"){
+    const s=SOURCES[m.key];
+    body=`<div style="display:flex;align-items:center;gap:14px"><span class="circ c-maroon"><i class="fa-solid ${s.icon}"></i></span><div><h2>Connect ${s.label}</h2><span class="muted small">${s.kind}</span></div></div>
+      <div class="consent"><b>FinPass will be able to:</b><ul><li>Read your payouts and transactions for the last 12 months</li><li>Check that the account is in your name</li></ul>
+      <b>FinPass will never:</b><ul><li>Move money or make payments</li><li>See your password</li><li>Share this data unless you choose to</li></ul></div>
+      <p class="small muted">Used only to build your passport. You can disconnect at any time.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn b-coral" data-act="consent-ok">Allow read-only access</button><button class="btn b-line" data-act="modal-close">Cancel</button></div>`;
+  }else{
+    body=`<div class="spinner" aria-hidden="true"></div><h2 style="text-align:center">Connecting ${SOURCES[m.key].label}…</h2><p class="muted" style="text-align:center">Reading 12 months of history and checking it against your identity.</p>`;
+  }
+  return `<div class="overlay" data-act="overlay"><div class="modal" role="dialog" aria-modal="true" data-act="panel">${m.step!=="connecting"?'<button class="btn b-ghost b-sm x" data-act="modal-close" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>':""}${body}</div></div>`;
+}
+
+/* ================= lender views ================= */
+function lstatus(id){
+  if(id==="arjun"){
+    if(S.req.status==="revoked")return ["Access revoked","bd-grey"];
+    if(S.req.status==="declined")return ["Request declined","bd-grey"];
+    if(S.req.status==="pending")return ["Awaiting passport","bd-warn"];
+  }
+  const d=S.decisions[id];
+  if(d)return [d==="approved"?"Approved":"Declined",d==="approved"?"bd-ok":"bd-bad"];
+  return ["Ready to review","bd-maroon"];
+}
+function appInfo(id){
+  if(id==="arjun")return {name:ARJUN.name,first:ARJUN.first,ref:"#8841",purpose:"Personal loan",amt:10000,ten:24,recv:S.req.sharedAt||"Requested today, 09:30"};
+  return {...OTHERS[id],recv:OTHERS[id].received};
+}
+const IDS=["arjun","daniel","priya"];
+function lshell(inner){
+  const open=IDS.filter(id=>lstatus(id)[0]==="Ready to review").length;
+  const nav=[["inbox","fa-inbox","Applications",open],["policy","fa-sliders","Credit policy"],["usage","fa-receipt","FinPass usage"]];
+  const cur=S.lview==="app"?"inbox":S.lview;
+  return `<div class="lshell"><aside class="lside">
+    <div class="logo"><span class="lm"><i class="fa-solid fa-passport"></i></span>FINPASS</div><div class="org">for Lenders · Lender X credit desk</div>
+    <nav class="lnav" aria-label="Credit desk">${nav.map(([k,ic,l,n])=>`<button data-act="lview" data-arg="${k}" ${cur===k?'aria-current="page"':""}><i class="fa-solid ${ic}"></i>${l}${n?`<span class="cnt">${n}</span>`:""}</button>`).join("")}</nav>
+    <div class="me"><span class="avatar">CO</span><div>Credit officer<br><span style="opacity:.6">Lender X</span></div></div>
+  </aside><main class="lmain">${inner}</main></div>`;
+}
+function vInbox(){
+  const st=IDS.map(id=>lstatus(id)[0]);
+  return `<div class="page-h"><div><h1>Applications</h1><p>Applicants share their FinPass passport with you. Your own credit policy decides.</p></div></div>
+    <div class="kpis"><div class="kpi"><small>Ready to review</small><b>${st.filter(s=>s==="Ready to review").length}</b></div><div class="kpi"><small>Awaiting passport</small><b>${st.filter(s=>s==="Awaiting passport").length}</b></div><div class="kpi"><small>Decided today</small><b>${Object.values(S.decisions).filter(Boolean).length}</b></div><div class="kpi"><small>Your debt-service limit</small><b>${S.policy}%</b></div></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Applicant</th><th>Ref</th><th>Product</th><th>Amount</th><th>Passport</th><th>Status</th></tr></thead><tbody>
+    ${IDS.map(id=>{const r=appInfo(id),[s,cls]=lstatus(id);return `<tr class="click" data-act="open-app" data-arg="${id}" tabindex="0"><td><span class="who"><span class="avatar">${r.name[0]}</span>${r.name}</span></td><td class="num">${r.ref}</td><td>${r.purpose}</td><td class="num">${sgd(r.amt)} · ${r.ten} months</td><td class="small muted">${r.recv}</td><td><span class="badge ${cls}">${s}</span></td></tr>`}).join("")}
+    </tbody></table></div>`;
+}
+function shareOf(id){return id==="arjun"?S.req.share:{stab:true,div:true,cover:true,rep:true,buf:true,raw:false}}
+function vApp(){
+  const id=S.lapp, info=appInfo(id), [st,cls]=lstatus(id);
+  const head=`<button class="btn b-ghost b-sm back" data-act="lview" data-arg="inbox"><i class="fa-solid fa-arrow-left"></i> Applications</button>
+    <div class="app-h"><span class="avatar">${info.name[0]}</span><div class="txt"><h2>${info.name}</h2><div class="small muted">Request ${info.ref} · ${info.purpose} · ${sgd(info.amt)} over ${info.ten} months</div></div><span class="badge ${cls}">${st}</span></div>`;
+  if(id==="arjun"&&S.req.status!=="shared"){
+    const msg=S.req.status==="pending"?["fa-hourglass-half","Waiting for Arjun to share his passport","You sent the request today at 09:30. His signals appear here as soon as he approves it."]
+      :S.req.status==="revoked"?["fa-lock","Arjun revoked access","His signals are hidden again. Your decision and the audit trail are kept."]
+      :["fa-ban","Arjun declined the request","Nothing was shared with you."];
+    return head+`<div class="waiting"><span class="circ c-soft" style="width:60px;height:60px;font-size:22px"><i class="fa-solid ${msg[0]}"></i></span><b>${msg[1]}</b><span>${msg[2]}</span></div>`;
+  }
+  const tabs=`<div class="ltabs"><button data-act="ltab" data-arg="passport" ${S.ltab==="passport"?'aria-current="page"':""}>Passport</button><button data-act="ltab" data-arg="analysis" ${S.ltab==="analysis"?'aria-current="page"':""}>Analysis</button></div>`;
+  return head+tabs+(S.ltab==="passport"?vAppPassport(id,info):vAppAnalysis(id));
+}
+function vAppPassport(id,info){
+  const c=model(personOf(id),seriesOf(id),info.amt,info.ten);
+  const sh=shareOf(id), lim=S.policy/100;
+  const row=(icon,k,v,hl,shown)=>shown?`<div class="prow"><span class="ic"><i class="fa-solid ${icon}"></i></span><span class="k">${k}</span><span class="v ${hl?"hl":""}">${v}</span></div>`:`<div class="prow off"><span class="ic"><i class="fa-solid fa-eye-slash"></i></span><span class="k">${k}</span><span class="v">Not shared</span></div>`;
+  const rows=[row("fa-money-bill-wave","Median monthly inflow (12 months)",sgd(c.med),0,sh.stab),
+    row("fa-chart-line","Income stability band",`${c.bd.b} · ${Math.round(c.bd.h*100)}% haircut`,0,sh.stab),
+    row("fa-coins","Income recognised",sgd(c.recog),0,sh.stab),
+    row("fa-scale-balanced","Debt service with the new loan",pct(c.dsr),1,sh.stab),
+    row("fa-calendar-check","Repayment record",c.p.arrears?`${c.p.arrears} late months`:"No arrears",0,sh.rep),
+    row("fa-chart-pie","Source diversity",`${f2(c.div)} · ${c.n} source${c.n===1?"":"s"}`,0,sh.div),
+    row("fa-hand-holding-dollar","Cash-flow cover",f2(c.cover)+"×",0,sh.cover),
+    row("fa-piggy-bank","Savings buffer",c.buf.toFixed(1)+" months",0,sh.buf)].join("");
+  const d=S.decisions[id];
+  let rc;
+  if(!sh.stab)rc=`<div class="rule-card"><span class="t">Your rule: debt service ≤ ${S.policy}%</span><span class="big">–</span><p>Income stability wasn't shared, so debt service can't be worked out.</p></div>`;
+  else{const ok=c.dsr<=lim,sc=.8,w=Math.min(c.dsr/sc,1)*100,l=lim/sc*100;
+    rc=`<div class="rule-card"><span class="t">Your rule: debt service ≤ ${S.policy}%</span><span class="big">${pct(c.dsr)}</span>
+      <div class="gauge"><span class="fill" style="width:${w}%"></span><span class="lim" style="left:${l}%"></span></div><div class="gauge-cap"><span style="left:${l}%">${S.policy}% limit</span></div>
+      <span class="badge ${ok?"bd-ok":"bd-bad"}" style="align-self:flex-start;font-size:13.5px;padding:6px 14px">${ok?"Within your limit":"Above your limit"}</span></div>`}
+  const decide=d?`<div class="decide"><b>Decision recorded</b><span class="badge ${d==="approved"?"bd-ok":"bd-bad"}" style="align-self:flex-start">${d==="approved"?"Approved":"Declined"} · ${info.first} has been notified</span><button class="btn b-line b-sm" data-act="undo-decision" style="align-self:flex-start">Change decision</button></div>`
+    :`<div class="decide"><b>Your decision</b><span class="small muted">FinPass supplies verified inputs. The credit decision and the risk stay with you.</span><div class="row"><button class="btn b-ok" data-act="decide" data-arg="approved"><i class="fa-solid fa-check"></i> Approve</button><button class="btn b-bad" data-act="decide" data-arg="declined"><i class="fa-solid fa-xmark"></i> Decline</button></div></div>`;
+  const tip=sh.stab?`<div class="note-box"><i class="fa-solid fa-lightbulb"></i><span>Band ${c.bd.b} means a ${Math.round(c.bd.h*100)}% haircut: ${sgd(c.med)} of inflow becomes ${sgd(c.recog)} of recognised income.</span></div>`:"";
+  const exp=id==="arjun"?`Access granted · ${S.req.expiry} days`:"Access granted · 7 days";
+  return `<div class="lgrid"><div class="portal"><div class="portal-h"><span>Verified signals from FinPass</span><span class="badge bd-gold">${exp}</span></div>${rows}</div>
+    <div style="display:flex;flex-direction:column;gap:16px">${rc}${decide}${tip}</div></div>`;
+}
+function vAppAnalysis(id){
+  const sc=S.scen[id], c=scenModel(id), sh=shareOf(id), lim=S.policy/100, p=c.p;
+  const okA=c.dsrA<=lim, okB=sh.stab&&c.dsr<=lim;
+  return `<div class="scen">
+      <div class="ctl"><label for="sc-amt">Scenario: loan amount</label><output id="sc-amt-o">${sgd(sc.amt)}</output><input type="range" id="sc-amt" min="3000" max="30000" step="1000" value="${sc.amt}" data-scen="amt"></div>
+      <div class="ctl"><label for="sc-ten">Scenario: tenure</label><output id="sc-ten-o">${sc.ten} months</output><input type="range" id="sc-ten" min="12" max="60" step="6" value="${sc.ten}" data-scen="ten"></div></div>
+    <div class="compare">
+      <div class="cmp"><h3>Rule A · payslip and tax records</h3><dl><dt>Income on record</dt><dd>${sgd(p.noa)}</dd><dt>${p.salary?"Salary in full, the rest cut 30%":"After a 30% haircut"}</dt><dd>${sgd(c.ruleA)}</dd><dt>Debt service</dt><dd>${pct(c.dsrA)}</dd></dl><span class="badge ${okA?"bd-ok":"bd-bad"}" style="align-self:flex-start">${okA?"Within your limit":"Above your limit"}</span></div>
+      <div class="cmp b"><h3>Rule B · FinPass verified cash flow</h3><dl><dt>Median verified inflow</dt><dd>${sh.stab?sgd(c.med):"–"}</dd><dt>After band ${sh.stab?c.bd.b:"–"} haircut</dt><dd>${sh.stab?sgd(c.recog):"–"}</dd><dt>Debt service</dt><dd>${sh.stab?pct(c.dsr):"–"}</dd></dl><span class="badge ${sh.stab?(okB?"bd-ok":"bd-bad"):"bd-grey"}" style="align-self:flex-start">${sh.stab?(okB?"Within your limit":"Above your limit"):"Not shared"}</span></div></div>
+    ${sh.stab?`<div class="card"><div class="card-h"><h3>Verified monthly inflow</h3><span class="small muted">Nov 2025 to Oct 2026</span></div>${incomeChart(seriesOf(id),labelsOf(id),c.med)}</div>`:""}
+    <div class="card"><div class="card-h"><h3>How each signal is calculated</h3></div><div class="work"><table>
+      <thead><tr><th>Signal</th><th>Formula</th><th>This applicant</th><th>Result</th></tr></thead><tbody>
+      <tr><td>Income stability</td><td class="f">1 − CV of monthly inflow (CV = σ ÷ μ)</td><td>1 − ${sgd(c.sd)} ÷ ${sgd(c.m)}</td><td class="r">${f2(c.stab)} → band ${c.bd.b}</td></tr>
+      <tr><td>Haircut</td><td class="f">≥ 0.85 → 10% · ≥ 0.65 → 20% · otherwise 30%</td><td>${sgd(c.med)} × (1 − ${c.bd.h.toFixed(2)})</td><td class="r">${sgd(c.recog)}</td></tr>
+      <tr><td>Source diversity</td><td class="f">1 − Σ (share of each source)²</td><td>1 − ${f2(c.hhi)}</td><td class="r">${f2(c.div)}</td></tr>
+      <tr><td>New instalment</td><td class="f">P·r ÷ (1 − (1 + r)⁻ⁿ), r = 7% ÷ 12</td><td>${sgd(sc.amt)}, n = ${sc.ten}</td><td class="r">${sgd(c.inst)}</td></tr>
+      <tr><td>Debt service</td><td class="f">(existing debt + instalment) ÷ recognised income</td><td>(${sgd(p.debt)} + ${sgd(c.inst)}) ÷ ${sgd(c.recog)}</td><td class="r">${pct(c.dsr)}</td></tr>
+      <tr><td>Cash-flow cover</td><td class="f">median net inflow ÷ (debt service + new instalment)</td><td>(${sgd(c.med)} − ${sgd(p.spend)}) ÷ ${sgd(c.service)}</td><td class="r">${f2(c.cover)}×</td></tr>
+      <tr><td>Repayment record</td><td class="f">months with no arrears, last 12</td><td>12 − ${p.arrears}</td><td class="r">${c.rep}/12</td></tr>
+      <tr><td>Savings buffer</td><td class="f">average balance ÷ median monthly outflow</td><td>${sgd(p.balance)} ÷ ${sgd(p.spend+p.debt)}</td><td class="r">${c.buf.toFixed(1)} months</td></tr>
+      </tbody></table></div><p class="small muted" style="margin-top:10px">Loan rate and living costs are illustrative. In production the lender sees only the rows the applicant shared.</p></div>`;
+}
+function vPolicy(){
+  return `<div class="page-h"><div><h1>Credit policy</h1><p>Your rules, applied to every FinPass passport you receive. FinPass never makes the decision.</p></div></div>
+    <div class="card"><div class="card-h"><h3>Maximum debt service</h3><span class="badge bd-maroon" id="pol-o" style="font-size:14px;padding:5px 14px">${S.policy}%</span></div>
+      <input type="range" id="pol" min="30" max="60" step="1" value="${S.policy}" data-pol="1" aria-label="Maximum debt service">
+      <p class="small muted" style="margin-top:8px">Debt payments including the new loan, as a share of recognised income. For reference, MAS caps TDSR at 55% for property loans.</p></div>
+    <div class="card"><div class="card-h"><h3>Haircut by income stability band</h3></div>
+      <div class="bands"><div class="band"><span class="small muted">Band A · stability ≥ 0.85</span><b>10% haircut</b></div><div class="band"><span class="small muted">Band B · stability ≥ 0.65</span><b>20% haircut</b></div><div class="band"><span class="small muted">Band C · below 0.65</span><b>30% haircut</b></div></div>
+      <p class="small muted" style="margin-top:12px">Compare with the flat 30% haircut many lenders apply to all variable income today.</p></div>`;
+}
+function vUsage(){
+  const checks=1284;
+  return `<div class="page-h"><div><h1>FinPass usage</h1><p>You pay per verified passport you open. Applicants use FinPass for free.</p></div></div>
+    <div class="kpis"><div class="kpi"><small>Passports opened this month</small><b>${checks.toLocaleString("en-SG")}</b></div><div class="kpi"><small>Price per check</small><b>S$5</b></div><div class="kpi"><small>Bill this month</small><b>${sgd(checks*5)}</b></div><div class="kpi"><small>Est. gain per non-salaried applicant</small><b>S$88</b></div></div>
+    <div class="note-box"><i class="fa-solid fa-lightbulb"></i><span>In our simulation, a lender gains about S$88 per non-salaried applicant (90% range S$65 to S$109) against a S$5 fee, so most of the value stays with the lender. Usage figures on this page are illustrative.</span></div>`;
+}
+
+/* ================= render ================= */
+function demoSwitch(){
+  return `<div class="demo-switch" role="group" aria-label="Demo view"><span class="lab">Demo</span>
+    <button data-act="role" data-arg="user" aria-pressed="${S.role==="user"}"><i class="fa-solid fa-user"></i> Arjun</button>
+    <button data-act="role" data-arg="lender" aria-pressed="${S.role==="lender"}"><i class="fa-solid fa-building"></i> Lender X</button>
+    <button class="rs" data-act="reset" title="Reset demo" aria-label="Reset demo"><i class="fa-solid fa-rotate-left"></i></button></div>`;
+}
+function render(){
+  const root=document.getElementById("root");
+  const wasOpen=[...root.querySelectorAll("details")].map(d=>d.open);
+  let html;
+  if(S.role==="user"){
+    html=!S.authed?vLogin():topbar()+({home:vHome,passport:vPassport,sources:vSources,sharing:vSharing,review:vReview,activity:vActivity}[S.uview])()+vModal();
+  }else{
+    html=lshell(({inbox:vInbox,app:vApp,policy:vPolicy,usage:vUsage}[S.lview])());
+  }
+  root.innerHTML=html+demoSwitch();
+  const ds=root.querySelectorAll("details");
+  if(ds.length===wasOpen.length)ds.forEach((d,i)=>{if(wasOpen[i])d.open=true});
+}
+const go=fn=>{fn();render()};
+const top0=()=>window.scrollTo(0,0);
+
+/* ================= events ================= */
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-act]");
+  if(!el){if(S.notifOpen)go(()=>{S.notifOpen=false;S.notifs.forEach(n=>n.unread=false)});return}
+  const a=el.dataset.act, arg=el.dataset.arg;
+  if(a==="panel")return;
+  if(a!=="notif"&&S.notifOpen){S.notifOpen=false;S.notifs.forEach(n=>n.unread=false)}
+  switch(a){
+    case "login-start":go(()=>S.loginStep=1);break;
+    case "login-back":go(()=>S.loginStep=0);break;
+    case "login-approve":go(()=>{S.authed=true;S.uview="home"});top0();toast("Logged in as Arjun Mehta");break;
+    case "uview":go(()=>S.uview=arg);top0();break;
+    case "notif":go(()=>{S.notifOpen=!S.notifOpen;if(!S.notifOpen)S.notifs.forEach(n=>n.unread=false)});break;
+    case "add-source":go(()=>S.modal={step:"pick"});break;
+    case "pick-source":if(arg)go(()=>S.modal={step:"consent",key:arg});break;
+    case "consent-ok":{const k=S.modal.key;go(()=>S.modal.step="connecting");
+      setTimeout(()=>{S.linked[k]=true;S.modal=null;act(`Connected ${SOURCES[k].label}`,"Read-only access, revocable at any time","fa-link","c-maroon");render();toast(`${SOURCES[k].label} connected. Your passport is updated.`)},reduceMotion()?200:1800);break}
+    case "modal-close":case "overlay":if(S.modal&&S.modal.step!=="connecting")go(()=>S.modal=null);break;
+    case "disconnect":go(()=>{S.linked[arg]=false;act(`Disconnected ${SOURCES[arg].label}`,"FinPass no longer reads this source","fa-link-slash","c-soft")});toast(`${SOURCES[arg].label} disconnected`,"fa-link-slash");break;
+    case "expiry":go(()=>S.req.expiry=+arg);break;
+    case "approve-share":go(()=>{S.req.status="shared";S.req.sharedAt=now();S.uview="sharing";
+      act("Shared your passport with Lender X",`${sharedCount()} signals${S.req.share.raw?" + raw transactions":""} · expires in ${S.req.expiry} days`,"fa-paper-plane","c-coral")});
+      top0();toast("Passport shared with Lender X");break;
+    case "decline-req":go(()=>{S.req.status="declined";S.uview="sharing";act("Declined Lender X's request","Nothing was shared","fa-ban","c-soft")});top0();toast("Request declined","fa-ban");break;
+    case "revoke":go(()=>{S.req.status="revoked";act("Revoked Lender X's access","They can no longer open your passport","fa-lock","c-soft")});toast("Access revoked","fa-lock");break;
+    case "role":go(()=>{S.role=arg;S.modal=null});top0();break;
+    case "reset":S=freshState();render();top0();toast("Demo reset","fa-rotate-left");break;
+    case "lview":go(()=>{S.lview=arg;S.lapp=null});top0();break;
+    case "open-app":go(()=>{S.lview="app";S.lapp=arg;S.ltab="passport";
+      if(arg==="arjun"&&S.req.status==="shared"&&!S.viewedArjun){S.viewedArjun=true;notify("Lender X opened your passport.","fa-eye","c-maroon");act("Lender X opened your passport",`Viewed ${sharedCount()} signals`,"fa-eye","c-maroon")}});top0();break;
+    case "ltab":go(()=>S.ltab=arg);break;
+    case "decide":{const id=S.lapp,first=appInfo(id).first;go(()=>{S.decisions[id]=arg;
+      if(id==="arjun"){notify(arg==="approved"?"Lender X approved your S$10,000 loan.":"Lender X declined your loan application.",arg==="approved"?"fa-circle-check":"fa-circle-xmark",arg==="approved"?"c-maroon":"c-coral");
+        act(arg==="approved"?"Lender X approved your loan":"Lender X declined your application","Decided by Lender X under its own credit policy",arg==="approved"?"fa-circle-check":"fa-circle-xmark",arg==="approved"?"c-maroon":"c-coral")}});
+      toast(`${arg==="approved"?"Approved":"Declined"}. ${first} has been notified.`,arg==="approved"?"fa-circle-check":"fa-circle-xmark");break}
+    case "undo-decision":go(()=>S.decisions[S.lapp]=null);break;
+  }
+});
+document.addEventListener("change",e=>{
+  const t=e.target;
+  if(t.dataset.share){S.req.share[t.dataset.share]=t.checked;render()}
+  if(t.dataset.scen){S.scen[S.lapp][t.dataset.scen]=+t.value;render();document.getElementById(t.id)?.focus()}
+  if(t.dataset.pol){S.policy=+t.value;render();document.getElementById("pol")?.focus()}
+});
+// While dragging, update only the label so the slider keeps the pointer.
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset.scen){const o=document.getElementById(t.id+"-o");if(o)o.textContent=t.dataset.scen==="amt"?sgd(+t.value):t.value+" months"}
+  if(t.dataset.pol){const o=document.getElementById("pol-o");if(o)o.textContent=t.value+"%"}
+});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&((S.modal&&S.modal.step!=="connecting")||S.notifOpen)){S.modal=null;S.notifOpen=false;render()}
+  if(e.key==="Enter"&&e.target.matches("tr[data-act]"))e.target.click();
+});
+
+render();
+})();
+</script>
+</body>
+</html>
